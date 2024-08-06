@@ -1,0 +1,16 @@
+/* src/index.css */
+@import "primereact/resources/themes/saga-blue/theme.css";
+@import "primereact/resources/primereact.min.css";
+@import "primeicons/primeicons.css";
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+.podcast-list {
+  padding: 20px;
+}
+
+.actions .p-button {
+  margin-right: 5px;
+}

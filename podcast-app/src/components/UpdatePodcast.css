@@ -1,0 +1,26 @@
+/* src/components/UpdatePodcast.css */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.p-field {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.p-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.input-text, .file-upload {
+    width: 100%;
+}
+
+.submit-button {
+    margin-top: 1rem;
+}

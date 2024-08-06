@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "root",
+    "password": "Gamo1isking@Gilbert123",
+    "database": "podcast_db",
+    "host": "localhost",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": "Gamo1isking@Gilbert123",
+    "database": "podcast_db",
+    "host": "localhost",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "Gamo1isking@Gilbert123",
+    "database": "podcast_db",
+    "host": "localhost",
+    "dialect": "mysql"
+  }
+}
