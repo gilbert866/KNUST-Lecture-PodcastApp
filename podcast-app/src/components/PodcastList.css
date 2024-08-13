@@ -1,0 +1,25 @@
+.podcast-list {
+  margin: 20px;
+}
+
+.podcast-header {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 20px;
+  padding-left: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ccc;
+}
+
+.p-grid.podcast-header {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.p-button-sm {
+  margin-right: 10px;
+}

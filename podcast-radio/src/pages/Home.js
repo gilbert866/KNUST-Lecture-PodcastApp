@@ -8,6 +8,8 @@ import {
   Typography,
   AppBar,
   Toolbar,
+  Card,
+  Slider,
 } from "@mui/material";
 import {
   PlayArrow,
@@ -18,6 +20,8 @@ import {
   Search as SearchIcon,
   Shuffle,
   Loop,
+  Repeat,
+  RepeatOne,
 } from "@mui/icons-material"; //import { Sidebar } from "primereact/sidebar";
 import { fetchAudioFiles } from "../services/audioService";
 import "primereact/resources/themes/saga-blue/theme.css";
@@ -47,10 +51,12 @@ const Home = () => {
   const [audioFiles, setAudioFiles] = useState([]);
   const [playingFileId, setPlayingFileId] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [loopMode, setLoopMode] = useState("none"); // New state for loop mode: none, single, alltate for looping
+  const [loopMode, setLoopMode] = useState("none");
   const [searchQuery, setSearchQuery] = useState("");
   const audioRef = useRef(null);
   const [recentlyPlayed, setRecentlyPlayed] = useState([]);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     const getAudioFiles = async () => {
@@ -60,16 +66,36 @@ const Home = () => {
     getAudioFiles();
   }, []);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    const updateProgress = () => {
+      setCurrentTime(audio.currentTime);
+      setDuration(audio.duration);
+    };
+
+    if (audio) {
+      audio.addEventListener("timeupdate", updateProgress);
+      audio.addEventListener("loadedmetadata", updateProgress);
+    }
+
+    return () => {
+      if (audio) {
+        audio.removeEventListener("timeupdate", updateProgress);
+        audio.removeEventListener("loadedmetadata", updateProgress);
+      }
+    };
+  }, [playingFileId]);
+
   const constructAudioUrl = (relativeUrl) =>
     `http://localhost:5000${relativeUrl}`;
 
   const handlePlayPause = (file) => {
     const audio = audioRef.current;
 
-    if (!audio) return; // Exit if audioRef is not set
+    if (!audio) return;
 
     if (playingFileId === file.id) {
-      // Toggle play/pause
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
@@ -80,32 +106,29 @@ const Home = () => {
         setIsPlaying(true);
       }
     } else {
-      // Pause the currently playing audio
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
       }
 
-      // Update audio source and play the new file
       audio.src = constructAudioUrl(file.audio_url);
       audio.play().catch((error) => {
         console.error("Play request was interrupted:", error);
       });
 
-      // Update state
       setPlayingFileId(file.id);
       setIsPlaying(true);
 
-      // Update recently played list
       setRecentlyPlayed((prev) => {
         const updatedList = [
           file,
           ...prev.filter((item) => item.id !== file.id),
         ];
-        return updatedList.slice(0, 5); // Keep only the last 5 played
+        return updatedList.slice(0, 8);
       });
     }
   };
+
   const handleShuffle = () => {
     const randomFile =
       audioFiles[Math.floor(Math.random() * audioFiles.length)];
@@ -127,6 +150,7 @@ const Home = () => {
       audioRef.current.loop = loopMode === "single";
     }
   }, [loopMode]);
+
   const handleNext = () => {
     const currentIndex = audioFiles.findIndex(
       (file) => file.id === playingFileId,
@@ -153,10 +177,11 @@ const Home = () => {
       handlePlayPause(audioFiles[nextIndex]);
     }
   };
+
   const filteredAudioFiles = audioFiles.filter((file) =>
     file.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  // Group audio files by title
+
   const groupedAudioFiles = filteredAudioFiles.reduce((groups, file) => {
     if (!groups[file.title]) {
       groups[file.title] = [];
@@ -164,6 +189,21 @@ const Home = () => {
     groups[file.title].push(file);
     return groups;
   }, {});
+
+  const handleSeek = (event) => {
+    const audio = audioRef.current;
+    const newTime = (event.target.value / 100) * duration;
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -177,7 +217,7 @@ const Home = () => {
               <SearchIcon />
             </SidebarIconButton>
           </StaticSidebar>
-        </SidebarContainer>{" "}
+        </SidebarContainer>
         <MainContent>
           <RecentlyPlayedContainer>
             <Typography variant="h6" color="textPrimary">
@@ -190,13 +230,23 @@ const Home = () => {
                     src={`https://picsum.photos/seed/${file.id}/150`}
                     alt={`${file.title} image`}
                   />
+                  <PlayButton
+                    onClick={() => handlePlayPause(file)}
+                    isPlaying={playingFileId === file.id && isPlaying}
+                  >
+                    {playingFileId === file.id && isPlaying ? (
+                      <Pause />
+                    ) : (
+                      <PlayArrow />
+                    )}
+                  </PlayButton>
                   <Typography variant="body2" color="textPrimary">
                     {file.title}
                   </Typography>
                 </RecentlyPlayedItem>
               ))}
             </RecentlyPlayedList>
-          </RecentlyPlayedContainer>{" "}
+          </RecentlyPlayedContainer>
           <SearchContainer>
             <TextField
               variant="outlined"
@@ -232,7 +282,7 @@ const Home = () => {
                             ) : (
                               <PlayArrow />
                             )}
-                          </PlayButton>{" "}
+                          </PlayButton>
                         </AudioContainer>
                       </AudioItem>
                     ))}
@@ -244,7 +294,7 @@ const Home = () => {
                 No podcasts available
               </Typography>
             )}
-          </Content>{" "}
+          </Content>
         </MainContent>
         <Footer>
           <FooterContent>
@@ -252,17 +302,35 @@ const Home = () => {
             <IconButton onClick={handleShuffle} color="primary">
               <Shuffle />
             </IconButton>
-            <Typography variant="body2" color="textSecondary">
-              {playingFileId
-                ? filteredAudioFiles.find((file) => file.id === playingFileId)
-                    .title
-                : "No podcast playing"}
-            </Typography>
+            <div>
+              {playingFileId ? (
+                <>
+                  <Typography variant="body2" color="textSecondary">
+                    {filteredAudioFiles.find(
+                      (file) => file.id === playingFileId,
+                    )?.title || "Unknown Title"}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {filteredAudioFiles.find(
+                      (file) => file.id === playingFileId,
+                    )?.description || "No Description"}
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2" color="textSecondary">
+                  No podcast playing
+                </Typography>
+              )}
+            </div>
             <IconButton onClick={handlePrevious} color="primary">
               <SkipPrevious />
             </IconButton>
             <IconButton
-              onClick={() => handlePlayPause({ id: playingFileId })}
+              onClick={() =>
+                handlePlayPause(
+                  audioFiles.find((file) => file.id === playingFileId),
+                )
+              }
               color="primary"
             >
               {isPlaying ? <Pause /> : <PlayArrow />}
@@ -271,9 +339,24 @@ const Home = () => {
               <SkipNext />
             </IconButton>
             <IconButton onClick={handleLoop} color="primary">
-              <Loop />
-            </IconButton>{" "}
+              {loopMode === "none" && <Repeat />}
+              {loopMode === "single" && <RepeatOne />}
+              {loopMode === "all" && <Repeat />}
+            </IconButton>
           </FooterContent>
+          <Slider
+            value={(currentTime / duration) * 100 || 0}
+            onChange={handleSeek}
+            aria-labelledby="continuous-slider"
+          />
+          <TimeDisplay>
+            <Typography variant="body2" color="textSecondary">
+              {formatTime(currentTime)}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              {formatTime(duration)}
+            </Typography>
+          </TimeDisplay>
         </Footer>
       </AppContainer>
     </ThemeProvider>
@@ -396,16 +479,17 @@ const RecentlyPlayedList = styled.div`
   padding: 1rem 0;
 `;
 
-const RecentlyPlayedItem = styled.div`
-  width: 120px;
+const RecentlyPlayedItem = styled(Card)`
+  width: 150px;
+  height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  padding: 10px;
+  background-color: #2c2c2c;
+  color: white;
+  position: relative;
   margin-right: 10px;
-  text-align: center;
-  img {
-    width: 100%;
-    height: 100px;
-    border-radius: 4px;
-    object-fit: cover;
-  }
 `;
 const PlayButton = styled(IconButton)`
   position: absolute;
@@ -444,21 +528,15 @@ const Footer = styled(AppBar)`
   display: flex;
   justify-content: center;
   align-items: center;
-`;
-const ProgressBarContainer = styled.div`
-  width: 100%;
-  height: 8px;
-  background-color: ${({ theme }) => theme.palette.secondary.main};
-  border-radius: 4px;
-  position: relative;
-  margin: 1rem 0;
+  height: 15%;
 `;
 
-const Progress = styled.div`
-  height: 100%;
-  background-color: ${({ theme }) => theme.palette.primary.main};
-  width: ${({ progress }) => progress}%;
-  border-radius: 4px;
+const TimeDisplay = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 60px;
+  margin-left: 10px;
+  color: ${({ theme }) => theme.palette.text.secondary};
 `;
 
 const FooterContent = styled(Toolbar)`
@@ -471,6 +549,7 @@ const FooterContent = styled(Toolbar)`
   img {
     width: 50px; /* Adjust width as needed */
     height: 50px; /* Set a specific height if needed */
+
     object-fit: cover; /* Control how the image fits within the dimensions */
     align-self: left;
   }
