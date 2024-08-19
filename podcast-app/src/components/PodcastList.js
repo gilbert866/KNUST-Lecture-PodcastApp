@@ -7,6 +7,7 @@ import { Dialog } from "primereact/dialog";
 import AddPodcast from "./AddPodcast";
 import UpdatePodcast from "./UpdatePodcast";
 import { InputText } from "primereact/inputtext";
+import Header from "../components/Header";
 
 const PodcastList = () => {
   const {
@@ -76,41 +77,44 @@ const PodcastList = () => {
 
   return (
     <div className="podcast-list">
-      <div className="p-grid p-justify-between p-align-center podcast-header">
-        <div className="p-col-6 p-text-right">
-          <InputText
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by title or description"
-            className="p-inputtext-sm search-input"
-          />
-        </div>
-      </div>{" "}
-      <DataTable value={filteredPodcasts} responsiveLayout="scroll">
-        <Column field="title" header="Title" sortable />
-        <Column field="description" header="Description" sortable />
-        <Column body={audioBodyTemplate} header="Audio" />
-        <Column body={actionBodyTemplate} header="Actions" />
-      </DataTable>
-      <Dialog
-        header="Add Podcast"
-        visible={addDialog}
-        style={{ width: "50vw" }}
-        onHide={() => setAddDialog(false)}
-      >
-        <AddPodcast onHide={() => setAddDialog(false)} />
-      </Dialog>
-      <Dialog
-        header="Edit Podcast"
-        visible={editDialog}
-        style={{ width: "50vw" }}
-        onHide={() => setEditDialog(false)}
-      >
-        <UpdatePodcast
-          podcast={selectedPodcast}
+      <div style={{ paddingTop: "60px", padding: "20px" }}>
+        <Header />
+        <div className="p-grid p-justify-between p-align-center podcast-header">
+          <div className="p-col-6 p-text-right">
+            <InputText
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by title or description"
+              className="p-inputtext-sm search-input"
+            />
+          </div>
+        </div>{" "}
+        <DataTable value={filteredPodcasts} responsiveLayout="scroll">
+          <Column field="title" header="Title" sortable />
+          <Column field="description" header="Description" sortable />
+          <Column body={audioBodyTemplate} header="Audio" />
+          <Column body={actionBodyTemplate} header="Actions" />
+        </DataTable>
+        <Dialog
+          header="Add Podcast"
+          visible={addDialog}
+          style={{ width: "50vw" }}
+          onHide={() => setAddDialog(false)}
+        >
+          <AddPodcast onHide={() => setAddDialog(false)} />
+        </Dialog>
+        <Dialog
+          header="Edit Podcast"
+          visible={editDialog}
+          style={{ width: "50vw" }}
           onHide={() => setEditDialog(false)}
-        />
-      </Dialog>
+        >
+          <UpdatePodcast
+            podcast={selectedPodcast}
+            onHide={() => setEditDialog(false)}
+          />
+        </Dialog>
+      </div>
     </div>
   );
 };
