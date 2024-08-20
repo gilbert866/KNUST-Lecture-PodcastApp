@@ -13,7 +13,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
-
+import img from "../../assets/image/Podcast-hero-image-1-transparent-bg.png";
 function Copyright(props) {
   return (
     <Typography
@@ -61,14 +61,16 @@ export default function SignInSide() {
           sm={4}
           md={7}
           sx={{
-            backgroundImage:
-              'url("/static/images/templates/templates-images/sign-in-side-bg.png")',
+            backgroundImage: `url(${img})`,
             backgroundColor: (t) =>
               t.palette.mode === "light"
                 ? t.palette.grey[50]
                 : t.palette.grey[900],
-            backgroundSize: "cover",
-            backgroundPosition: "left",
+            backgroundSize: "contain", // Ensures the image fits within the container
+            backgroundPosition: "center", // Centers the image within the grid
+            backgroundRepeat: "no-repeat", // Prevents the image from repeating
+            minHeight: "100vh", // Ensures the grid item takes up the full height of the viewport
+            // filter: "blur(10px)", // Add this line to blur the image
           }}
         />
         <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
